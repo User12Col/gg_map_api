@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:gg_map_api/point.dart';
+import 'package:gg_map_api/location.dart';
 import 'package:gg_map_api/service.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
@@ -72,22 +72,17 @@ class MapSampleState extends State<MapSample> {
       tilt: 59.440717697143555,
       zoom: 19.151926040649414);
 
-  _getLocation() async {
-    return await mapService
-        .getCurrentPoint('402 Tùng Thiện Vương, Quận 8, Thành phố Hồ Chí Minh');
-  }
-
-  Marker _createMarker() {
+  Marker _createMarker(double lat, double lng) {
     if (_markerIcon != null) {
       return Marker(
         markerId: const MarkerId('marker_1'),
-        position: LatLng(10.744757, 106.656691),
+        position: LatLng(lat, lng),
         icon: _markerIcon!,
       );
     } else {
-      return const Marker(
+      return Marker(
         markerId: MarkerId('marker_1'),
-        position: LatLng(10.744757, 106.656691),
+        position: LatLng(lat, lng),
       );
     }
   }
@@ -95,16 +90,26 @@ class MapSampleState extends State<MapSample> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: GoogleMap(
-        mapType: MapType.normal,
-        markers: <Marker>{
-          _createMarker()
-        },
-        initialCameraPosition: _kGooglePlex,
-        onMapCreated: (GoogleMapController controller) async{
-          _controller.complete(controller);
-          await mapService
-              .getCurrentPoint('402 Tùng Thiện Vương, Quận 8, Thành phố Hồ Chí Minh');
+      body: FutureBuilder<Location?>(
+        future: mapService.getCurrentPoint('Vĩnh Phú 29, Vĩnh Phú, Thuận An, Bình Dương'),
+        builder: (context, snapshot){
+          if(snapshot.hasData){
+            return GoogleMap(
+              mapType: MapType.normal,
+              markers: <Marker>{
+                _createMarker(snapshot.data!.lat, snapshot.data!.lng)
+              },
+              initialCameraPosition: CameraPosition(
+                target: LatLng(snapshot.data!.lat, snapshot.data!.lng),
+                zoom: 14.4746,
+              ),
+              onMapCreated: (GoogleMapController controller) async{
+                _controller.complete(controller);
+              },
+            );
+          } else{
+            return Center(child: const CircularProgressIndicator());
+          }
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
