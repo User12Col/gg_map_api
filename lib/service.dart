@@ -13,7 +13,6 @@ class MapService{
         final geometry = result[0]['geometry'] as Map<String, dynamic>;
         final location = geometry['location'] as Map<String, dynamic>;
         final latLng = Location.fromJson(location);
-        print('Lat is: ${latLng.lat}');
         return latLng;
 
       } else{
